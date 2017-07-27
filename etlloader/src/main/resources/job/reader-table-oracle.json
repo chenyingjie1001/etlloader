@@ -1,0 +1,22 @@
+
+                    "name": "oraclereader",
+                    "parameter": {
+                       
+                        "username": $p_source_username,
+                        
+                        "password": $p_source_password,
+                        "column": [
+                            $p_source_checkcolumns
+                        ],
+                        "where":  $p_source_wheresql,
+                        "connection": [
+                            {
+                                "table": [
+                                    $p_source_sourcetable
+                                ],
+                                "jdbcUrl": [
+     								$p_source_url
+                                ]
+                            }
+                        ]
+                    }

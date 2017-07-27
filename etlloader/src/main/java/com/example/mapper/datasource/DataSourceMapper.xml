@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.mapper.datasource.DataSourceMapper">
+	<select id="find" resultType="DataSource">
+		SELECT *
+		FROM datasource
+		<where>
+			<if test="id != null ">
+				and id = #{id}
+			</if>
+			<if test="sourcename != null ">
+				and upper(sourcename) like upper(CONCAT('%',CONCAT('${sourcename}','%')))
+			</if>
+			<if test="method != null ">
+				and method = #{method}
+			</if>
+			<if test="ip != null ">
+				and ip = #{ip}
+			</if>
+			<if test="port != null ">
+				and port = #{port}
+			</if>
+
+			<if test="dbname != null ">
+				and dbname = #{dbname}
+			</if>
+
+			<if test="schema != null ">
+				and schema = #{schema}
+			</if>
+
+			<if test="username != null ">
+				and username = #{username}
+			</if>
+
+			<if test="password != null ">
+				and password = #{password}
+			</if>
+
+			<if test="classname != null ">
+				and classname = #{classname}
+			</if>
+
+			<if test="url != null ">
+				and url = #{url}
+			</if>
+
+			<if test="testsql != null ">
+				and testsql = #{testsql}
+			</if>
+
+			<if test="type != null ">
+				and type = #{type}
+			</if>
+
+			<if test="istarget != null ">
+				and istarget = #{istarget}
+			</if>
+		</where>
+		order by id desc
+	</select>
+
+	<insert id="add" parameterType="DataSource" keyProperty="id">
+		insert
+		into datasource (
+		ip,sourcename,method,port,dbname,schema,username,password,classname,url,testsql,type,istarget)
+		values(
+		#{ip,jdbcType=VARCHAR},
+		#{sourcename,jdbcType=VARCHAR},
+		#{method,jdbcType=VARCHAR},
+		#{port,jdbcType=VARCHAR},
+		#{dbname,jdbcType=VARCHAR},
+		#{schema,jdbcType=VARCHAR},
+		#{username,jdbcType=VARCHAR},
+		#{password,jdbcType=VARCHAR},
+		#{classname,jdbcType=VARCHAR},
+		#{url,jdbcType=VARCHAR},
+		#{testsql,jdbcType=VARCHAR},
+		#{type,jdbcType=VARCHAR},
+		#{istarget,jdbcType=CHAR}
+		)
+	</insert>
+
+	<select id="findById" resultType="DataSource">
+		SELECT *
+		FROM datasource
+		where id=#{id}
+	</select>
+
+	<update id="update" parameterType="DataSource">
+		update datasource
+		<trim prefix="set" suffixOverrides=",">
+			<if test="sourcename != null ">
+				sourcename = #{sourcename},
+			</if>
+			<if test="ip != null ">
+				ip = #{ip},
+			</if>
+			<if test="method != null ">
+				method = #{method},
+			</if>
+			<if test="port != null ">
+				port = #{port},
+			</if>
+
+			<if test="dbname != null ">
+				dbname = #{dbname},
+			</if>
+
+			<if test="schema != null ">
+				schema = #{schema},
+			</if>
+
+			<if test="username != null ">
+				username = #{username},
+			</if>
+
+			<if test="password != null ">
+				password = #{password},
+			</if>
+
+			<if test="classname != null ">
+				classname = #{classname},
+			</if>
+
+			<if test="url != null ">
+				url = #{url},
+			</if>
+
+			<if test="testsql != null ">
+				testsql = #{testsql},
+			</if>
+
+			<if test="type != null ">
+				type = #{type},
+			</if>
+
+			<if test="istarget != null ">
+				istarget = #{istarget},
+			</if>
+		</trim>
+		where id = #{id}
+	</update>
+
+	<delete id="delete" parameterType="int">
+		delete from datasource where
+		id=#{id}
+	</delete>
+
+</mapper> 

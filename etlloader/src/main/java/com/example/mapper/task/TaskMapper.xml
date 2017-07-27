@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.mapper.task.TaskMapper">
+    <select id="find" parameterType="Task" resultType="Task">
+        SELECT *
+        FROM task
+        <where>
+        	<if test="id != null">
+        		 and id = #{id} 
+        	</if>
+        	
+        	<if  test="datasourceid != null">
+        		and datasourceid = #{datasourceid}
+        	</if>
+        	
+        	<if test="parentid != null">
+        		and parentid = #{parentid}
+        	</if>
+        	
+        	<if test="checktables != null">
+        		and checktables = #{checktables}
+        	</if>
+
+			<if test="taskstatus != null">
+        		and taskstatus = #{taskstatus}
+        	</if>
+        	
+			<if test="isall != null">
+        		and isall = #{isall}
+        	</if>
+        	
+			<if test="frequency != null">
+        		and frequency = #{frequency}
+        	</if>
+        	
+			<if test="tasktype != null">
+        		and tasktype = #{tasktype}
+        	</if>
+        	
+			<if test="retry != null">
+        		and retry = #{retry}
+        	</if>
+        	
+			<if test="retrywaittime != null">
+        		and retrywaittime = #{retrywaittime}
+        	</if>
+        	
+			<if test="outofretrytime != null">
+        		and outofretrytime = #{outofretrytime}
+        	</if>
+        	
+			<if test="des != null">
+        		and des = #{des}
+        	</if>
+        	
+			<if test="wheresql != null">
+        		and wheresql = #{wheresql}
+        	</if>
+        	
+			<if test="startdate != null and enddate != null">
+        		and createdate between to_date('${startdate}', 'yyyy-MM-dd') and to_date('${enddate}', 'yyyy-MM-dd')
+        	</if>
+        	
+			<if test="createuser != null">
+        		and createuser = #{createuser}
+        	</if>
+			
+			<if test="targetsourceid != null">
+        		and targetsourceid = #{targetsourceid}
+        	</if>
+        	
+			<if test="sourcetable != null">
+        		and upper(sourcetable) like upper(CONCAT('%',CONCAT('${sourcetable}','%' ))) 
+        	</if>
+        	
+			<if test="targettable != null">
+        		and targettable = #{targettable}
+        	</if>
+        	
+			<if test="sql != null">
+        		and sql = #{sql}
+        	</if>
+        	
+			<if test="checkcolumns != null">
+        		and checkcolumns = #{checkcolumns}
+        	</if>
+        	
+        </where>
+        order by id desc
+    </select>
+    <select id="findIncloudChildren" parameterType="Task" resultType="map">
+        SELECT *
+        FROM task
+        <where>
+        	<if test="id != null">
+        		 and id = #{id} 
+        	</if>
+        	
+        	<if  test="datasourceid != null">
+        		and datasourceid = #{datasourceid}
+        	</if>
+        	
+        	<if test="parentid != null">
+        		and parentid = #{parentid}
+        	</if>
+        	
+        	<if test="checktables != null">
+        		and checktables = #{checktables}
+        	</if>
+
+			<if test="taskstatus != null">
+        		and taskstatus = #{taskstatus}
+        	</if>
+        	
+			<if test="isall != null">
+        		and isall = #{isall}
+        	</if>
+        	
+			<if test="frequency != null">
+        		and frequency = #{frequency}
+        	</if>
+        	
+			<if test="tasktype != null">
+        		and tasktype = #{tasktype}
+        	</if>
+        	
+			<if test="retry != null">
+        		and retry = #{retry}
+        	</if>
+        	
+			<if test="retrywaittime != null">
+        		and retrywaittime = #{retrywaittime}
+        	</if>
+        	
+			<if test="outofretrytime != null">
+        		and outofretrytime = #{outofretrytime}
+        	</if>
+        	
+			<if test="des != null">
+        		and des = #{des}
+        	</if>
+        	
+			<if test="wheresql != null">
+        		and wheresql = #{wheresql}
+        	</if>
+        	
+			<if test="startdate != null and enddate != null">
+        		and createdate between to_date('${startdate}', 'yyyy-MM-dd') and to_date('${enddate}', 'yyyy-MM-dd')
+        	</if>
+        	
+			<if test="createuser != null">
+        		and createuser = #{createuser}
+        	</if>
+			
+			<if test="targetsourceid != null">
+        		and targetsourceid = #{targetsourceid}
+        	</if>
+        	
+			<if test="sourcetable != null">
+        		and upper(sourcetable) like upper(CONCAT('%',CONCAT('${sourcetable}','%')))
+        	</if>
+        	
+			<if test="targettable != null">
+        		and targettable = #{targettable}
+        	</if>
+        	
+			<if test="sql != null">
+        		and sql = #{sql}
+        	</if>
+        	
+			<if test="checkcolumns != null">
+        		and checkcolumns = #{checkcolumns}
+        	</if>
+        	
+        </where>
+         order by id desc
+    </select>
+    
+    <select id="findAllDS" resultType="DataSource">
+        SELECT *
+        FROM datasource 
+    </select>
+    
+    <select id="findDSById" parameterType="int" resultType="DataSource">
+        SELECT *
+        FROM datasource 
+        where id=#{id}
+    </select>
+    
+   <insert id="add" parameterType="Task">
+  	 <selectKey resultType="int" order="BEFORE" keyProperty="id">
+		SELECT TASK_SEQ.NEXTVAL FROM DUAL
+	 </selectKey>
+	 insert into task (
+	 	id,
+ 		datasourceid,
+ 		parentid,
+ 		checktables,
+ 		taskstatus,
+ 		isall,
+ 		frequency,
+ 		tasktype,
+		retry,
+		retrywaittime,
+ 		outofretrytime,
+ 		des,
+ 		wheresql,
+ 		createdate,
+ 		createuser,
+ 		targetsourceid,
+ 		sourcetable,
+ 		targettable,
+ 		sql,
+ 		checkcolumns
+ 			) values (
+ 		#{id,jdbcType=NUMERIC},
+		#{datasourceid,jdbcType=NUMERIC},
+		#{parentid,jdbcType=NUMERIC},
+		#{checktables,jdbcType=VARCHAR},
+		#{taskstatus,jdbcType=VARCHAR},
+		#{isall,jdbcType=VARCHAR},
+		#{frequency,jdbcType=VARCHAR},
+		#{tasktype,jdbcType=VARCHAR},
+		#{retry,jdbcType=NUMERIC},
+		#{retrywaittime,jdbcType=NUMERIC},
+		#{outofretrytime,jdbcType=NUMERIC},
+		#{des,jdbcType=VARCHAR},
+		#{wheresql,jdbcType=VARCHAR},
+		#{createdate,jdbcType=TIMESTAMP},
+		#{createuser,jdbcType=VARCHAR},
+		#{targetsourceid,jdbcType=VARCHAR},	
+		#{sourcetable,jdbcType=VARCHAR},
+		#{targettable,jdbcType=VARCHAR},
+		#{sql,jdbcType=VARCHAR},
+		#{checkcolumns,jdbcType=VARCHAR}
+		)
+    </insert>
+    
+    <delete id="delete" parameterType="int">
+		delete from task where id=#{id}
+	</delete>
+    
+    <update id="updateTaskStatus" parameterType="map" >
+    	update task set taskstatus = #{taskstatus} where id = #{id} or PARENTID = #{id}
+    </update>
+    
+    <select id="findAllTask" parameterType="int" resultType="Task">
+    	select * from task
+    	where id = #{id} or parentid = #{id}
+    </select>
+    
+    <delete id="deleteSubtask" parameterType="int">
+		delete from task where parentid=#{0}
+	</delete>
+    
+    <select id="findTaskById" parameterType="int" resultType="Task">
+    	select * from task where id = #{id}
+    </select>
+    
+     <select id="findTasksByParentId" parameterType="int" resultType="Task">
+    	select * from task where parentid = #{parentid}
+    </select>
+    
+    <select id="findExeTask" resultType="Task">
+    	select * from task where 
+    		parentid != 0 and 
+    		taskstatus = 1 and 
+    		frequency is not null
+    </select>
+    <update id="update" parameterType="Task">
+    	update task 
+    	<trim prefix="set" suffixOverrides=",">
+    		<if  test="datasourceid != null">
+        		datasourceid = #{datasourceid},
+        	</if>
+        	
+        	<if test="parentid != null">
+        		parentid = #{parentid},
+        	</if>
+        	
+        	<if test="checktables != null">
+        		checktables = #{checktables},
+        	</if>
+
+			<if test="taskstatus != null">
+        		taskstatus = #{taskstatus},
+        	</if>
+        	
+			<if test="isall != null">
+        		isall = #{isall},
+        	</if>
+        	
+			<if test="frequency != null">
+        		frequency = #{frequency},
+        	</if>
+        	
+			<if test="tasktype != null">
+        		tasktype = #{tasktype},
+        	</if>
+        	
+			<if test="retry != null">
+        		retry = #{retry},
+        	</if>
+        	
+			<if test="retrywaittime != null">
+        		retrywaittime = #{retrywaittime},
+        	</if>
+        	
+			<if test="outofretrytime != null">
+        		outofretrytime = #{outofretrytime},
+        	</if>
+        	
+			<if test="des != null">
+        		des = #{des},
+        	</if>
+        	
+			<if test="wheresql != null">
+        		wheresql = #{wheresql},
+        	</if>
+        	
+			<if test="createdate != null">
+        		createdate = #{createdate},
+        	</if>
+        	
+			<if test="createuser != null">
+        		createuser = #{createuser},
+        	</if>
+			
+			<if test="targetsourceid != null">
+        		targetsourceid = #{targetsourceid},
+        	</if>
+        	
+			<if test="sourcetable != null">
+        		sourcetable = #{sourcetable},
+        	</if>
+        	
+			<if test="targettable != null">
+        		targettable = #{targettable},
+        	</if>
+        	
+			<if test="sql != null">
+        		sql = #{sql},
+        	</if>
+        	
+			<if test="checkcolumns != null">
+        		checkcolumns = #{checkcolumns},
+        	</if>
+    	
+    	</trim>
+    where id = #{id}
+    </update>
+    
+    <select id="findWhereConf" parameterType="int" resultType="String">
+    	select wheresql from task where id=#{taskid}
+    </select>
+    
+</mapper> 
+
+
+
+
+
+
+
+
+
+
+

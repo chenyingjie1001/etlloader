@@ -1,0 +1,20 @@
+					
+					"name": "oraclewriter",
+                    "parameter": {
+                        "username": $p_target_username,
+                        "password": $p_target_password,
+                        "column": [
+                            $p_target_checkcolumns
+                        ],
+                        "preSql": [
+                            $p_target_presql
+                        ],
+                        "connection": [
+                            {
+                                "jdbcUrl": $p_target_url,
+                                "table": [
+                                    $p_target_targettable
+                                ]
+                            }
+                        ]
+                    }

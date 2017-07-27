@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.mapper.previews.PreviewMapper">
+	
+	<select id="find" parameterType="Relationship" resultType="Relationship">
+		select * from relationship
+		<where>
+			<if test="sourcename != null">
+				and sourcename = #{sourcename}
+			</if>
+			<if test="tablename != null">
+				and upper(tablename) like upper(CONCAT('%',CONCAT('${tablename}','%')))
+			</if>
+			<if test="taskid != null">
+				and taskid = #{taskid}
+			</if>
+			<if test="parentid != null">
+				and parentid = #{parentid}
+			</if>
+		</where>
+		order by sourcename , tablename
+	</select>
+	
+	<select id="preview" parameterType="Relationship" resultType="map">
+		<![CDATA[
+		select * from ods.${tablename} where rownum < 11
+		]]>
+	</select>
+	
+	<insert id="add" parameterType="Relationship">
+		insert into relationship(
+		SOURCENAME,
+		TABLENAME,
+		TASKID,
+		PARENTID
+		) values(#{sourcename}, #{tablename}, #{taskid}, #{parentid})
+	</insert>
+	
+	<delete id="update_delete" parameterType="Relationship">
+		delete from relationship where parentid = #{parentid}
+	</delete>
+	
+	<delete id="delete">
+		delete from relationship where taskid = #{taskid}
+	</delete>
+</mapper> 

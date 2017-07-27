@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.mapper.execute.ExecuteMapper">
+	<select id="find" resultType="ExecuteTask">
+		<![CDATA[ SELECT t1.*
+		FROM executetask t1 , task t2 where t1.taskid = t2.id and t2.parentid <> -1]]>
+		<if test="id != null">
+			and t1.id = #{id}
+		</if>
+
+		<if test="taskid != null">
+			and t1.taskid = #{taskid}
+		</if>
+
+		<if test="startdate != null and enddate != null">
+			and t1.createdate between to_date('${startdate}', 'yyyy-MM-dd') and
+			to_date('${enddate}', 'yyyy-MM-dd')
+		</if>
+
+		<if test="exedate != null">
+			and t1.exedate = #{exedate}
+		</if>
+
+		<if test="completedate != null">
+			and t1.completedate = #{completedate}
+		</if>
+
+		<if test="exestatus != null">
+			and t1.exestatus = #{exestatus}
+		</if>
+
+		<if test="retrytime != null">
+			and t1.retrytime = #{retrytime}
+		</if>
+
+		<if test="exelog != null">
+			and t1.exelog = #{exelog}
+		</if>
+		<if test="task != null">
+			<if test=" task.sourcetable != null">
+				and upper(t2.sourcetable) like upper(CONCAT('%',CONCAT('${task.sourcetable}','%')))
+			</if>
+		</if>
+		order by t1.id desc
+	</select>
+
+	<insert id="add" parameterType="ExecuteTask" keyProperty="id">
+		insert
+		into executetask(
+		taskid,
+		createdate,
+		exestatus,
+		isall
+		) values(
+		#{taskid,jdbcType=NUMERIC},
+		#{createdate,jdbcType=TIMESTAMP},
+		#{exestatus,jdbcType=NUMERIC},
+		#{isall,jdbcType=VARCHAR}
+		)
+	</insert>
+</mapper> 

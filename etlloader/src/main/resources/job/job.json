@@ -1,0 +1,17 @@
+{
+    "job": {
+        "setting": {
+            "speed": {
+                "channel": 1
+            }
+        },
+        "content": [
+            {
+                 "reader": {${reader}
+                },
+                "writer": {${writer}
+                }
+            }
+        ]
+    }
+}
