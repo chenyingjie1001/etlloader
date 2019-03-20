@@ -1,0 +1,20 @@
+package mllpservice.mapper.mllp;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author chao.liang
+ * @date 2018/10/17 12:10
+ **/
+@Mapper
+public interface MllpMapper {
+
+    /**
+     * 增加记录
+     * @param map
+     */
+   void addMllp(Map<String,Object> map);
+}

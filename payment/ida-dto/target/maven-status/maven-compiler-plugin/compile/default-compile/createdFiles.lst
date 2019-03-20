@@ -2,5 +2,9 @@ com\firesoon\dto\base\Pager.class
 com\firesoon\dto\base\WarnException.class
 com\firesoon\dto\user\User.class
 com\firesoon\dto\base\MyExceptionResponse.class
+com\firesoon\dto\tree\Tree.class
 com\firesoon\dto\base\ResultMessage.class
+com\firesoon\dto\tree\TreeData.class
+com\firesoon\dto\tree\TreeNode.class
 com\firesoon\dto\base\ReMsg.class
+com\firesoon\dto\tree\Tree$1.class

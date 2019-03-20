@@ -1,0 +1,26 @@
+package mllpservice;
+
+import mllpservice.mapper.mllp.MllpMapper;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+
+/**
+ * @author chao.liang
+ * @date 2019/2/18 16:21
+ **/
+@SpringBootApplication
+public class SpringBootSocketApplication {
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context = SpringApplication.run(SpringBootSocketApplication.class, args);
+        MllpMapper mapper =  context.getBean(MllpMapper.class);
+        //起socket服务
+        SocketServer server = new SocketServer();
+        server.setMllpMapper(mapper);
+//        String address = "172.21.1.5";
+        String address = "localhost";
+        int port = 8188;
+        server.startSocketServer(address,port);
+    }
+}

@@ -1,0 +1,20 @@
+spring.datasource.url=jdbc:oracle:thin:@172.16.3.73:1521:hdctest
+spring.datasource.username=portal
+spring.datasource.password=portal
+spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
+spring.servlet.multipart.max-file-size=100Mb
+spring.servlet.multipart.max-request-size=1000Mb
+mybatis.mapper-locations=classpath*:mapper/*/*Mapper.xml
+mybatis.type-aliases-package=com.firesoon.paymentmapper.dto
+mybatis.configuration.call-setters-on-nulls=true
+#first method
+logging.level.com.firesoon.paymentmapper=debug
+logging.path=log
+logging.level.console=info
+spring.session.store-type=redis
+spring.redis.database=0
+## test
+spring.redis.host=172.16.3.73
+#
+#spring.redis.host=172.21.0.3
+#

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.firesoon.paymentmapper.appealTemplate.AppealTemplateMapper">
+    <select id="findAppealTemplate" resultType="map" parameterType="map">
+         select * from ida.ida_appealtemplate_config 
+         <where>
+	         <if test="rulename != null and rulename != '' ">
+		          and rule_name = #{rulename}
+		     </if>
+		     <if test="itemname != null and itemname != '' ">
+				 and item_name = #{itemname}
+		     </if>
+		     <if test="itemcode != null and itemcode != '' ">
+				 and item_code = #{itemcode}
+		     </if>
+		     <if test="chargereason != null and chargereason != '' ">
+				 and chargereason = #{chargereason}
+		     </if>
+	      </where>
+	      order by createtime desc
+    </select>
+    <select id="countAppealTemplate" resultType="map" parameterType="map">
+         select count(*) num from ida.ida_appealtemplate_config 
+         <where>
+	         <if test="rulename != null and rulename != '' ">
+		          and rule_name = #{rulename}
+		     </if>
+		     <if test="rulename != null and rulename == '' ">
+		          and rule_name is null 
+		     </if>
+		     <if test="itemname != null and itemname != '' ">
+		          and item_name = #{itemname}
+		     </if>
+		     <if test="itemname != null and itemname == '' ">
+		          and item_name is null
+		     </if>
+		     <if test="itemcode != null and itemcode != '' ">
+		          and item_code = #{itemcode}
+		     </if>
+		     <if test="itemcode != null and itemcode == '' ">
+		          and item_code is null
+		     </if>
+		     <if test="chargereason != null and chargereason != '' ">
+		          and chargereason = #{chargereason}
+		     </if>
+		     <if test="chargereason != null and chargereason == '' ">
+		          and chargereason is null
+		     </if>
+	       </where>
+    </select>
+    <select id="insertAppealTemplate" parameterType="map">
+         insert into ida.ida_appealtemplate_config values (#{id},#{rulename},#{itemcode},#{itemname},#{chargereason},#{appealexplainnum},#{appealexplain},sysdate,sysdate)
+    </select>
+    <select id="updateAppealTemplate" parameterType="map">
+         update ida.ida_appealtemplate_config 
+         set rule_name = #{rulename},item_code = #{itemcode},item_name = #{itemname},chargereason = #{chargereason},appealexplain = #{appealexplain},appealexplainnum = #{appealexplainnum},updatetime = sysdate
+         where id = #{id}
+    </select>
+    <select id="deleteAppealTemplate" parameterType="map">
+         delete from ida.ida_appealtemplate_config where id = #{id}
+    </select>
+     <select id="findMax" resultType="map" parameterType="map">
+         select max(to_number(appealexplainnum)) max from ida.ida_appealtemplate_config
+    </select>
+    <select id="updateTemplate" parameterType="map">
+         update ida.ida_appealtemplate_config 
+         set appealexplain = #{appealexplain},appealexplainnum = #{appealexplainnum},updatetime = sysdate
+         <where>
+	         <if test="rulename != null and rulename != '' ">
+		          and rule_name = #{rulename}
+		     </if>
+		     <if test="rulename != null and rulename == '' ">
+		          and rule_name is null 
+		     </if>
+		     <if test="itemname != null and itemname != '' ">
+		          and item_name = #{itemname}
+		     </if>
+		     <if test="itemname != null and itemname == '' ">
+		          and item_name is null
+		     </if>
+		     <if test="itemcode != null and itemcode != '' ">
+		          and item_code = #{itemcode}
+		     </if>
+		     <if test="itemcode != null and itemcode == '' ">
+		          and item_code is null
+		     </if>
+		     <if test="chargereason != null and chargereason != '' ">
+		          and chargereason = #{chargereason}
+		     </if>
+		     <if test="chargereason != null and chargereason == '' ">
+		          and chargereason is null
+		     </if>
+	      </where>
+    </select>
+    <select id="findUniqTemplate" resultType="map" parameterType="map">
+         select * from ida.ida_appealtemplate_config 
+         <where>
+	         <if test="rulename != null and rulename != '' ">
+		          and rule_name = #{rulename}
+		     </if>
+		     <if test="rulename != null and rulename == '' ">
+		          and rule_name is null 
+		     </if>
+		     <if test="itemname != null and itemname != '' ">
+		          and item_name = #{itemname}
+		     </if>
+		     <if test="itemname != null and itemname == '' ">
+		          and item_name is null
+		     </if>
+		     <if test="itemcode != null and itemcode != '' ">
+		          and item_code = #{itemcode}
+		     </if>
+		     <if test="itemcode != null and itemcode == '' ">
+		          and item_code is null
+		     </if>
+		     <if test="chargereason != null and chargereason != '' ">
+		          and chargereason = #{chargereason}
+		     </if>
+		     <if test="chargereason != null and chargereason == '' ">
+		          and chargereason is null
+		     </if>
+	      </where>
+    </select>
+</mapper>

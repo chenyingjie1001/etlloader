@@ -1,0 +1,28 @@
+package com.firesoon.idaservice.chargeBillDetail;
+
+import java.util.*;
+
+public interface ChargeBillDetailService {
+	Map<String, Object> query(Map<String, Object> map);
+
+	void delete(Map<String, Object> map);
+
+	List<Map<String, Object>> allDepartment(Map<String, Object> map);
+
+	List<Map<String, Object>> allExcelDepartment(Map<String, Object> map);
+
+	List<Map<String, Object>> allItem(Map<String, Object> map);
+	
+	void updateDepartment(Map<String, Object> map);
+	
+	List<Map<String, Object>> getAppealMessage(Map<String, Object> map);
+	
+	void updateWrite(Map<String, Object> map);
+	
+	Map<String, Object> getSectionLevelMonth();
+	
+	List<Map<String, Object>> allDepartmentConfig();
+	
+	Map<String, Object> levelDownload(Map<String, Object> map);
+	
+}

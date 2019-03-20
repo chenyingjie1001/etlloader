@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.firesoon.paymentmapper.chargeBillAnalysis.ChargeBillAnalysisMapper">
+    <select id="getReasonDetail" resultType="map" parameterType="map">
+             ${unionSql}  
+             select abs(sum(charge_money)) allcharge,count(*) num
+             from ida_chargebill_detail 
+         <where>
+             isappeal in (-1,0)
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+    </select>
+    <select id="getReasonRate" resultType="map" parameterType="map">
+             ${unionSql}
+             select abs(sum(charge_money)) money
+             from ida_chargebill_detail a
+         <where>
+             isappeal = 1
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+          union all
+           select abs(sum(charge_money)) money
+             from ida_chargebill_detail a
+         <where>
+             isappeal = -1
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+          union all 
+           select abs(sum(charge_money)) money
+             from ida_chargebill_detail a
+         <where>
+             isappeal = 0
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+    </select>
+    <select id="getItemTable" resultType="map" parameterType="map">
+             ${unionSql}
+             select a.item_name,abs(sum(a.charge_money)) allcharge,count(*) num,b.successmoney,c.failuremoney,d.nonemoney
+             from ida_chargebill_detail a left join
+	           (  select item_name,abs(sum(charge_money)) successmoney
+	             from ida_chargebill_detail 
+	             <where>
+		             isappeal = 1
+		             <if test="startDate != null and startDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+			         </if>
+			         <if test="endDate != null and endDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+			         </if>
+	             </where>
+	             group by item_name ) b on a.item_name = b.item_name
+	             left join
+	           (  select item_name,abs(sum(charge_money)) failuremoney
+	             from ida_chargebill_detail 
+		         <where>
+		             isappeal = -1
+		             <if test="startDate != null and startDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+			         </if>
+			         <if test="endDate != null and endDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+			         </if>
+		          </where>
+		          group by item_name ) c on a.item_name = c.item_name
+		          left join
+	           (   select item_name,abs(sum(charge_money)) nonemoney
+	              from ida_chargebill_detail 
+		          <where>
+		             isappeal = 0
+		             <if test="startDate != null and startDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+			         </if>
+			         <if test="endDate != null and endDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+			         </if>
+		          </where>
+		          group by item_name ) d on a.item_name = d.item_name
+         <where>
+             and a.isappeal in (-1,0)
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+          group by a.item_name,b.successmoney,c.failuremoney,d.nonemoney
+          order by allcharge desc
+    </select>
+    <select id="getDownItemDepartment" resultType="map" parameterType="map">
+              ${unionSql}
+             select b.main_department,abs(sum(a.charge_money)) money,count(*) num
+             from ida_chargebill_detail a,ida_department_config b
+           <where>
+             a.item_name = #{param} and a.deductedept = b.name  and isappeal in (-1,0)
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+             group by b.main_department
+             order by money desc
+    </select>
+     <select id="getDownItemDoctor" resultType="map" parameterType="map">
+      ${unionSql}
+             select a.doctor_name,abs(sum(charge_money)) money,count(*) num
+             from ida_chargebill_detail a
+           <where>
+             a.item_name = #{param} and isappeal in (-1,0)
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+             group by a.doctor_name
+             order by money desc
+    </select>
+    <select id="getReasonTable" resultType="map" parameterType="map">
+             ${unionSql}
+             select a.charge_reason,abs(sum(charge_money)) allcharge,count(*) num,b.successmoney,c.failuremoney,d.nonemoney
+             from ida_chargebill_detail a left join
+	           (   select charge_reason,abs(sum(charge_money)) successmoney
+	             from ida_chargebill_detail a
+		         <where>
+		             isappeal = 1
+		             <if test="startDate != null and startDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+			         </if>
+			         <if test="endDate != null and endDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+			         </if>
+		          </where>
+		          group by charge_reason ) b on a.charge_reason = b.charge_reason
+		          left join
+	           (   select charge_reason,abs(sum(charge_money)) failuremoney
+	             from ida_chargebill_detail a
+		         <where>
+		             isappeal = -1
+				     <if test="startDate != null and startDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+			         </if>
+			         <if test="endDate != null and endDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+			         </if>
+		          </where>
+		          group by charge_reason) c on a.charge_reason = c.charge_reason
+		          left join
+	           (   select charge_reason,abs(sum(charge_money)) nonemoney
+	             from ida_chargebill_detail a
+		         <where>
+		             isappeal = 0
+		             <if test="startDate != null and startDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+			         </if>
+			         <if test="endDate != null and endDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+			         </if>
+		          </where>
+		          group by charge_reason) d on a.charge_reason = d.charge_reason
+         <where>
+             and a.isappeal in (-1,0)
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+          group by a.charge_reason,b.successmoney,c.failuremoney,d.nonemoney
+          order by allcharge desc
+    </select>
+    <select id="getReasonDownDepartment" resultType="map" parameterType="map">
+             ${unionSql} select b.main_department,abs(sum(charge_money)) money,count(*) num
+             from ida_chargebill_detail a,ida_department_config b
+           <where>
+             a.deductedept = b.name and a.charge_reason = #{param} and isappeal in (-1,0)
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+             group by b.main_department
+             order by money desc
+    </select>
+    <select id="getReasonDownDoctor" resultType="map" parameterType="map">
+             ${unionSql} select a.doctor_name,abs(sum(charge_money)) money,count(*) num
+             from ida_chargebill_detail a
+           <where>
+             a.charge_reason = #{param} and isappeal in (-1,0)
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+             group by a.doctor_name
+             order by money desc
+    </select>
+    <select id="getReasonDownItem" resultType="map" parameterType="map">
+              ${unionSql} select a.item_name,abs(sum(charge_money)) money,count(*) num
+             from ida_chargebill_detail a
+           <where>
+             a.charge_reason = #{param} and isappeal in (-1,0)
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+             group by a.item_name
+             order by money desc
+    </select>
+    <select id="getDepartTable" resultType="map" parameterType="map">
+              ${unionSql} select a.main_department,abs(sum(charge_money)) allcharge,count(*) num,b.successmoney,c.failuremoney,d.nonemoney
+             from             
+             (select b.main_department,a.charge_money,a.month
+              from ida_chargebill_detail a,ida_department_config b
+              where a.deductedept = b.name and a.isappeal in (-1,0)
+             ) a
+             left join
+	           (   select b.main_department,abs(sum(a.charge_money)) successmoney
+	             from ida_chargebill_detail a,ida_department_config b
+		         <where>
+		             a.deductedept = b.name and a.isappeal = 1
+		             <if test="startDate != null and startDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+			         </if>
+			         <if test="endDate != null and endDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+			         </if>
+		          </where>
+		          group by b.main_department ) b on a.main_department = b.main_department
+		          left join
+	           (   select  b.main_department,abs(sum(a.charge_money)) failuremoney
+	             from ida_chargebill_detail a,ida_department_config b
+		         <where>
+		              a.deductedept = b.name and a.isappeal = -1
+				     <if test="startDate != null and startDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+			         </if>
+			         <if test="endDate != null and endDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+			         </if>
+		          </where>
+		          group by b.main_department) c on a.main_department = c.main_department
+		          left join
+	           (   select b.main_department,abs(sum(a.charge_money)) nonemoney
+	             from ida_chargebill_detail a,ida_department_config b
+		         <where>
+		              a.deductedept = b.name and a.isappeal = 0
+		             <if test="startDate != null and startDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+			         </if>
+			         <if test="endDate != null and endDate !='' ">
+			             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+			         </if>
+		          </where>
+		          group by b.main_department) d on a.main_department = d.main_department
+         <where>
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+          group by a.main_department,b.successmoney,c.failuremoney,d.nonemoney
+          order by allcharge desc
+    </select>
+    <select id="getDepartDownDoctor" resultType="map" parameterType="map">
+              ${unionSql} select a.doctor_name,abs(sum(charge_money)) money,count(*) num
+             from ida_chargebill_detail a
+           <where>
+             and a.isappeal in (-1,0)
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+	         and a.deductedept in (select name from ida_department_config where main_department = #{param})
+           </where>
+             group by a.doctor_name
+             order by money desc
+    </select>
+    <select id="getDepartDownItem" resultType="map" parameterType="map">
+              ${unionSql} select a.item_name,abs(sum(charge_money)) money,count(*) num
+             from ida_chargebill_detail a
+           <where>
+             and a.isappeal in (-1,0)
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+	         and a.deductedept in (select name from ida_department_config where main_department = #{param})
+          </where>
+             group by a.item_name
+             order by money desc
+    </select>
+    <select id="getDepartDownReason" resultType="map" parameterType="map">
+              ${unionSql} select a.charge_reason,abs(sum(charge_money)) money,count(*) num
+             from ida_chargebill_detail a
+           <where>
+             and a.isappeal in (-1,0)
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+	         and a.deductedept in (select name from ida_department_config where main_department = #{param})
+          </where>
+             group by a.charge_reason
+             order by money desc
+    </select>
+     <select id="getDepartDoctor" resultType="map" parameterType="map">
+              ${unionSql} select a.item_name,abs(sum(a.charge_money)) money,count(*) num
+             from ida_chargebill_detail a
+           <where>
+             and a.isappeal in (-1,0) and 
+             a.doctor_name = #{param} and a.deductedept in (select name from ida_department_config where main_department = #{department})
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+             group by a.item_name
+             order by money desc
+    </select>
+     <select id="getDepartItem" resultType="map" parameterType="map">
+              ${unionSql} select a.doctor_name,abs(sum(a.charge_money)) money,count(*) num
+             from ida_chargebill_detail a
+           <where>
+             and a.isappeal in (-1,0) and
+             a.item_name = #{param} and a.deductedept in (select name from ida_department_config where main_department = #{department})
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+             group by a.doctor_name
+             order by money desc
+    </select>
+     <select id="getDepartReason" resultType="map" parameterType="map">
+              ${unionSql} select a.doctor_name,abs(sum(a.charge_money)) money,count(*) num
+             from ida_chargebill_detail a
+           <where>
+             and a.isappeal in (-1,0) and
+             a.charge_reason = #{param} and a.deductedept in (select name from ida_department_config where main_department = #{department})
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+             group by a.doctor_name
+             order by money desc
+    </select>
+     <select id="getUtrlaDoctor" resultType="map" parameterType="map">
+              ${unionSql} 
+              select a.item_name,abs(sum(a.charge_money)) money,count(*) num
+             from ida_chargebill_detail a
+           <where>
+             and a.isappeal in (-1,0) and
+             a.charge_reason = #{param} and a.deductedept in (select name from ida_department_config where main_department = #{department})
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+             group by a.item_name
+             order by money desc
+    </select>
+     <select id="getUtrlaReason" resultType="map" parameterType="map">
+              ${unionSql} 
+              select a.charge_reason,abs(sum(a.charge_money)) money,count(*) num
+             from ida_chargebill_detail a
+           <where>
+             and a.isappeal in (-1,0) and
+             a.doctor_name = #{param} and a.deductedept in (select name from ida_department_config where main_department = #{department})
+             <if test="startDate != null and startDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') >= to_date(#{startDate}, 'yyyy-MM') ]]>   
+	         </if>
+	         <if test="endDate != null and endDate !='' ">
+	             <![CDATA[ and to_date(month, 'yyyy-MM') <= to_date(#{endDate}, 'yyyy-MM') ]]>  
+	         </if>
+          </where>
+             group by a.charge_reason
+             order by money desc
+    </select>
+</mapper>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.firesoon.paymentmapper.assessment.AssessmentMapper">
+
+    <select id="listAssmessmentForMonth" resultType="hashmap">
+        select * from ida_assessmanage_month t
+        <where>
+            <if test="month != null">
+                t.assess_time = #{month}
+            </if>
+        </where>
+    </select>
+    <select id="listAssmessmentForYear" resultType="hashmap">
+        select * from ida_assessmanage_year t
+        <where>
+            <if test="year != null">
+                t.assess_time = #{year}
+            </if>
+        </where>
+    </select>
+</mapper>

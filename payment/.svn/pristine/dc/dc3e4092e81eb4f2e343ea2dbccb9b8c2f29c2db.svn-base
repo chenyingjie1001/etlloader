@@ -1,0 +1,30 @@
+create table drgs.MLLP_MESSAGE
+(
+  id                VARCHAR2(100) not null,
+  messagehappentime VARCHAR2(100) not null,
+  messagereturntime VARCHAR2(100),
+  createdate        DATE,
+  updatedate        DATE,
+  operateor         VARCHAR2(50),
+  delflag           NUMBER(1) default 0 not null,
+  message           CLOB
+)
+tablespace HDC_DRGS
+  pctfree 10
+  initrans 1
+  maxtrans 255;
+-- Add comments to the columns
+comment on column drgs.MLLP_MESSAGE.messagehappentime
+  is '消息发生时间';
+comment on column drgs.MLLP_MESSAGE.messagereturntime
+  is '消息返回时间';
+comment on column drgs.MLLP_MESSAGE.createdate
+  is '创建日期';
+comment on column drgs.MLLP_MESSAGE.updatedate
+  is '修改日期';
+comment on column drgs.MLLP_MESSAGE.operateor
+  is '创建人';
+comment on column drgs.MLLP_MESSAGE.delflag
+  is '删除标识。0 不删除 1 删除 默认0';
+comment on column drgs.MLLP_MESSAGE.message
+  is '消息主体';

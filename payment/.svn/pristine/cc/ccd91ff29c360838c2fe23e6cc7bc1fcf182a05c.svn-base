@@ -1,0 +1,149 @@
+package com.firesoon.idaservice.chargeBillCollect.impl;
+
+import com.firesoon.idaservice.chargeBillCollect.ChargeBillCollectService;
+import com.firesoon.paymentmapper.chargeBillCollect.ChargeBillCollectMapper;
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
+
+@Primary
+@Service
+public class ChargeBillServiceCollectImpl implements ChargeBillCollectService {
+
+	@Autowired
+	private ChargeBillCollectMapper chargeBillCollectMapper;
+
+	@Override
+	public Map<String, Object> query(Map<String, Object> map) {
+		List<String> dateList = new ArrayList<>();
+		try {
+			dateList = getDateList(map);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		Map<String, Object> result = new HashMap<>();
+		Map<String, Object> resultMap = new HashMap<>();
+		List<Map<String, Object>> moneyList = chargeBillCollectMapper.getAllMoney(map);
+		if (moneyList.get(0).get("ALLCHARGE") != null) {
+			result.put("allcharge", chargeBillCollectMapper.getAllMoney(map).get(0).getOrDefault("ALLCHARGE", "0"));
+		} else {
+			result.put("allcharge", "0");
+		}
+		if (moneyList.get(1).get("ALLBACK") != null) {
+			result.put("allback", chargeBillCollectMapper.getAllMoney(map).get(1).getOrDefault("ALLBACK", "0"));
+		} else {
+			result.put("allback", "0");
+		}
+		if ("3".equals(map.get("dateType"))) {
+			String date = chargeBillCollectMapper.getMonthMax(map).get(0).get("TIME").toString();
+			String[] dateArr = date.split("-");
+			result.put("mostmonth", dateArr[0] + "年Q" + dateArr[1]);
+		} else {
+			result.put("mostmonth", chargeBillCollectMapper.getMonthMax(map).get(0).get("TIME"));
+		}
+		if ("3".equals(map.get("dateType")) && chargeBillCollectMapper.getYearMax(map).size() > 0) {
+			String date = chargeBillCollectMapper.getYearMax(map).get(0).get("TIME").toString();
+			String[] dateArr = date.split("-");
+			result.put("bviousmonth", dateArr[0] + "年Q" + dateArr[1]);
+		} else if (!"3".equals(map.get("dateType")) && chargeBillCollectMapper.getYearMax(map).size() > 0) {
+			result.put("bviousmonth", chargeBillCollectMapper.getYearMax(map).get(0).get("TIME"));
+		} else {
+			result.put("bviousmonth", "");
+		}
+		result.put("mostdepart", chargeBillCollectMapper.getDepartmentMoney(map).get(0).get("DEPARTMENT"));
+		Double money = Double
+				.valueOf(chargeBillCollectMapper.getDepartmentMoney(map).get(0).getOrDefault("MONEY", "0").toString());
+		Double allMoney = Double.valueOf(result.get("allcharge").toString());
+		Double rate = 0d;
+		if (allMoney > 0) {
+			rate = money * 100 / allMoney;
+			BigDecimal bg = new BigDecimal(rate);
+			Double math = bg.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+			if (math > 0)
+				result.put("rate", math.toString() + "%");
+			else
+				result.put("rate", "0");
+		}
+		resultMap.put("info", result);
+		List<Map<String, Object>> resultMapList = chargeBillCollectMapper.getData(map);
+		List<String> departList = new ArrayList<>();
+		resultMapList.forEach(x -> {
+			x.forEach((k, v) -> {
+				if ("DEPARTMENT".equals(k))
+					departList.add(v.toString());
+				if (v == null)
+					x.put(k, "0");
+			});
+		});
+		List<Map<String, Object>> finalList = new ArrayList<>();
+		for (String depart : departList) {
+			Map<String, Object> dataMap = new HashMap<>();
+			List<String> yearCompare = new ArrayList<>();
+			List<String> monthCompare = new ArrayList<>();
+			for (int i = 0; i < dateList.size(); i++) {
+				dataMap.put(dateList.get(i), "");
+			}
+			dataMap.put("yearCompare", yearCompare);
+			dataMap.put("monthCompare", monthCompare);
+			Double num = 0d;
+			dataMap.put("科室", depart);
+			for (Map<String, Object> x : resultMapList) {
+				if (depart.equals(x.get("DEPARTMENT").toString()) && !"3".equals(map.get("dateType"))) {
+					dataMap.put(x.get("TIME").toString(), x.get("MONEY"));
+					num += Double.valueOf(x.get("MONEY").toString());
+				} else if (depart.equals(x.get("DEPARTMENT").toString()) && "3".equals(map.get("dateType"))) {
+					String[] dateTime = x.get("TIME").toString().split("-");
+					dataMap.put(dateTime[0] + "年Q" + dateTime[1], x.get("MONEY"));
+					num += Double.valueOf(x.get("MONEY").toString());
+				}
+			}
+			dataMap.put("汇总", num);
+			finalList.add(dataMap);
+		}
+		resultMap.put("tableInfo", dateList);
+		resultMap.put("pageInfo", finalList);
+		return resultMap;
+	}
+
+	public List<String> getDateList(Map<String, Object> map) throws ParseException {
+		List<String> result = new LinkedList<>();
+		result.add("科室");
+		String startDate = map.get("startDate").toString();
+		String endDate = map.get("endDate").toString();
+		String dateType = map.get("dateType").toString();
+		if ("1".equals(dateType)) {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
+			Calendar min = Calendar.getInstance();
+			Calendar max = Calendar.getInstance();
+			min.setTime(sdf.parse(startDate));
+			min.set(min.get(Calendar.YEAR), min.get(Calendar.MONTH), 1);
+			max.setTime(sdf.parse(endDate));
+			max.set(max.get(Calendar.YEAR), max.get(Calendar.MONTH), 2);
+			Calendar curr = min;
+			while (curr.before(max)) {
+				result.add(sdf.format(curr.getTime()));
+				curr.add(Calendar.MONTH, 1);
+			}
+		} else if ("2".equals(dateType)) {
+			Integer start = Integer.valueOf(startDate);
+			Integer end = Integer.valueOf(endDate);
+			for (int i = start; i < end + 1; i++) {
+				result.add(String.valueOf(i));
+			}
+		} else if ("3".equals(dateType)) {
+			Integer start = Integer.valueOf(startDate);
+			Integer end = Integer.valueOf(endDate);
+			for (int i = start; i < end + 1; i++) {
+				for (int j = 1; j < 5; j++) {
+					result.add(i + "年Q" + j);
+				}
+			}
+		}
+		result.add("汇总");
+		return result;
+	}
+}

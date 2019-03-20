@@ -1,0 +1,161 @@
+package mllpservice;
+
+import lombok.Data;
+import mllpservice.mapper.mllp.MllpMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
+import java.util.*;
+
+/**
+ * @author chao.liang
+ * @date 2019/2/18 16:20
+ **/
+@Service
+@Data
+public class SocketServer {
+
+    Logger logger = LoggerFactory.getLogger(SocketServer.class);
+
+    private MllpMapper mllpMapper;
+    /**
+     * 解码buffer
+     */
+    private Charset cs = Charset.forName("UTF-8");
+    /**
+     * 接受数据缓冲区
+     */
+    private static ByteBuffer sBuffer = ByteBuffer.allocate(1024);
+    /**
+     * 发送数据缓冲区
+     */
+    private static ByteBuffer rBuffer = ByteBuffer.allocate(1024);
+    /**
+     * 监听器
+     */
+    private static Selector selector;
+
+    /**
+     * 启动socket服务，开启监听
+     *
+     * @param port
+     * @throws IOException
+     */
+    public void startSocketServer(String address, int port) {
+        try {
+            //打开通信信道
+            ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+            //设置为非阻塞
+            serverSocketChannel.configureBlocking(false);
+            //获取套接字
+            ServerSocket serverSocket = serverSocketChannel.socket();
+            //绑定端口号
+            serverSocket.bind(new InetSocketAddress(address, port));
+            //打开监听器
+            selector = Selector.open();
+            //将通信信道注册到监听器
+            serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+            //监听器会一直监听，如果客户端有请求就会进入相应的事件处理
+            while (true) {
+                //select方法会一直阻塞直到有相关事件发生或超时
+                selector.select();
+                //监听到的事件
+                Set<SelectionKey> selectionKeys = selector.selectedKeys();
+                for (SelectionKey key : selectionKeys) {
+                    handle(key);
+                }
+                //清除处理过的事件
+                selectionKeys.clear();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 处理不同的事件
+     *
+     * @param selectionKey
+     * @throws IOException
+     */
+    private void handle(SelectionKey selectionKey) throws IOException {
+        ServerSocketChannel serverSocketChannel = null;
+        SocketChannel socketChannel = null;
+        String requestMsg = "";
+        int count = 0;
+        if (selectionKey.isAcceptable()) {
+            //每有客户端连接，即注册通信信道为可读
+            serverSocketChannel = (ServerSocketChannel) selectionKey.channel();
+            socketChannel = serverSocketChannel.accept();
+            socketChannel.configureBlocking(false);
+            socketChannel.register(selector, SelectionKey.OP_READ);
+        } else if (selectionKey.isReadable()) {
+            socketChannel = (SocketChannel) selectionKey.channel();
+            rBuffer.clear();
+            count = socketChannel.read(rBuffer);
+            //读取数据
+            if (count > 0) {
+                rBuffer.flip();
+                requestMsg = String.valueOf(cs.decode(rBuffer).array());
+            }
+            logger.debug("收到消息:" + requestMsg);
+            Calendar calendar = Calendar.getInstance();
+            String year = calendar.get(Calendar.YEAR) + "";
+            String month = calendar.get(Calendar.MONTH) + 1 > 10 ? calendar.get(Calendar.MONTH) + 1 + "" : "0" + (calendar.get(Calendar.MONTH) + 1);
+            String day = calendar.get(Calendar.DAY_OF_MONTH) > 10 ? calendar.get(Calendar.DAY_OF_MONTH) + "" : "0" + calendar.get(Calendar.DAY_OF_MONTH);
+            String hour = calendar.get(Calendar.HOUR_OF_DAY) > 10 ? calendar.get(Calendar.HOUR_OF_DAY) + "" : "0" + calendar.get(Calendar.HOUR_OF_DAY);
+            String minute = calendar.get(Calendar.MINUTE) > 10 ? calendar.get(Calendar.MINUTE) + "" : "0" + calendar.get(Calendar.MINUTE);
+            String second = calendar.get(Calendar.SECOND) > 10 ? calendar.get(Calendar.SECOND) + "" : "0" + calendar.get(Calendar.SECOND);
+            String messageReturnTime = year + month + day + hour + minute + second;
+            Map<String, Object> map = new HashMap<>();
+            String[] strings = requestMsg.split("\\r");
+            String[] requestMsgStr = strings[0].split("\\|");
+            String uuid = UUID.randomUUID().toString();
+            StringBuilder responseMsgSb = new StringBuilder();
+            responseMsgSb.append(requestMsgStr[0]).append("|").append(requestMsgStr[1]).append("|")
+                    .append(requestMsgStr[4]).append("|").append(requestMsgStr[5]).append("|")
+                    .append(requestMsgStr[2]).append("|").append(requestMsgStr[3]).append("|")
+                    .append(messageReturnTime).append("||ACK|").append(uuid.replace("-", "")).append("|")
+                    .append(requestMsgStr[10]).append("|").append(requestMsgStr[11]).append("\r\n");
+            responseMsgSb.append("MSA|AA|").append(requestMsgStr[9]).append("||||^");
+            map.put("messageHappenTime", requestMsgStr[6]);
+            map.put("messageReturnTime", messageReturnTime);
+            map.put("message", requestMsg);
+            mllpMapper.addMllp(map);
+            //返回数据
+            logger.debug("返回消息:" + responseMsgSb.toString());
+            System.out.println("返回消息:" + responseMsgSb.toString());
+            sBuffer = ByteBuffer.allocate(responseMsgSb.toString().getBytes("UTF-8").length);
+            sBuffer.put(responseMsgSb.toString().getBytes("UTF-8"));
+            sBuffer.flip();
+            socketChannel.write(sBuffer);
+            socketChannel.close();
+        }
+    }
+
+//    private void sentClient(String responseMsg) {
+//        String sendIp = "localhost";
+//        try {
+//            int port = 8288;
+//            Socket client = new Socket(sendIp, port);
+//            Writer writer = new OutputStreamWriter(client.getOutputStream());
+//            writer.write(responseMsg);
+//            writer.flush();
+//            writer.close();
+//            client.close();
+//        } catch (Exception e) {
+//            System.out.println("服务器异常");
+//        }
+//    }
+}
+

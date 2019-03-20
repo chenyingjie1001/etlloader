@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.firesoon.paymentmapper.chargeBillCollect.ChargeBillCollectMapper">
+    <select id="getAllMoney" resultType="map" parameterType="map">
+             ${unionSql}
+             select abs(sum(charge_money)) allcharge
+             from ida_chargebill_detail a
+         <where>
+             a.isappeal in('-1','0')
+             <if test="dateType == 1 and startDate != null and startDate !=''">
+	             <![CDATA[ and to_date(month,'yyyy-MM') >= to_date(#{startDate},'yyyy-MM')]]>
+	         </if>
+	         <if test="dateType == 1 and endDate != null and endDate !='' ">
+	              <![CDATA[ and to_date(month,'yyyy-MM') <= to_date(#{endDate},'yyyy-MM')]]>
+	         </if>
+	         <if test="dateType == 2 and startDate != null and startDate !='' ">
+	              <![CDATA[ and to_date(substr(month,0,4),'yyyy') >= to_date(#{startDate},'yyyy')]]>
+	         </if>
+	         <if test="dateType == 2 and endDate != null and endDate !='' ">
+	              <![CDATA[ and to_date(substr(month,0,4),'yyyy') <= to_date(#{endDate},'yyyy')]]>
+	         </if>
+	         <if test="dateType == 3 and startDate != null and startDate !='' ">
+	              <![CDATA[ and to_date(substr(month,0,4),'yyyy') >= to_date(#{startDate},'yyyy')]]>
+	         </if>
+	         <if test="dateType == 3 and endDate != null and endDate !='' ">
+	              <![CDATA[ and to_date(substr(month,0,4),'yyyy') <= to_date(#{endDate},'yyyy')]]>
+	         </if>
+          </where>
+          union all
+          select abs(sum(charge_money)) allback
+             from ida_chargebill_detail a
+         <where>
+             isappeal = '1'
+             <if test="dateType == 1 and startDate != null and startDate !='' ">
+	              <![CDATA[ and to_date(month,'yyyy-MM') >= to_date(#{startDate},'yyyy-MM')]]>
+	         </if>
+	         <if test="dateType == 1 and endDate != null and endDate !='' ">
+	              <![CDATA[ and to_date(month,'yyyy-MM') <= to_date(#{endDate},'yyyy-MM')]]>
+	         </if>
+	         <if test="dateType == 2 and startDate != null and startDate !='' ">
+	              <![CDATA[ and to_date(substr(month,0,4),'yyyy') >= to_date(#{startDate},'yyyy')]]>
+	         </if>
+	         <if test="dateType == 2 and endDate != null and endDate !='' ">
+	              <![CDATA[ and to_date(substr(month,0,4),'yyyy') <= to_date(#{endDate},'yyyy')]]>
+	         </if>
+	         <if test="dateType == 3 and startDate != null and startDate !='' ">
+	              <![CDATA[ and to_date(substr(month,0,4),'yyyy') >= to_date(#{startDate},'yyyy')]]>
+	         </if>
+	         <if test="dateType == 3 and endDate != null and endDate !='' ">
+	              <![CDATA[ and to_date(substr(month,0,4),'yyyy') <= to_date(#{endDate},'yyyy')]]>
+	         </if>
+          </where>
+    </select>
+    <select id="getMonthMax" resultType="map" parameterType="map">
+             <if test="dateType == 1 ">
+                 select a.time,nvl(abs(sum(a.money)), 0) total from
+                 ( ${unionSql} select month time,charge_money money from ida_chargebill_detail where isappeal in (-1,0)) a
+	         </if>
+	         <if test="dateType == 2 ">
+	             select a.time,nvl(abs(sum(a.money)), 0) total from
+	             ( ${unionSql} select to_char(to_date(substr(month,0,4),'yyyy'),'yyyy') time, charge_money money from ida_chargebill_detail where isappeal in (-1,0)) a
+	         </if>
+	         <if test="dateType == 3 ">
+	             select a.time,nvl(abs(sum(a.money)), 0) total from
+	             ( ${unionSql} select to_char(to_date(month,'yyyy-MM'),'yyyy-Q') time, charge_money money from ida_chargebill_detail where isappeal in (-1,0)) a
+	         </if>
+	         <where>
+	             <if test="dateType == 1 and startDate != null and startDate !='' ">
+		              <![CDATA[ and to_date(a.time,'yyyy-MM') >= to_date(#{startDate},'yyyy-MM')]]>
+		         </if>
+		         <if test="dateType == 1 and endDate != null and endDate !='' ">
+		              <![CDATA[ and to_date(a.time,'yyyy-MM') <= to_date(#{endDate},'yyyy-MM')]]>
+		         </if>
+		         <if test="dateType == 2 and startDate != null and startDate !='' ">
+		              <![CDATA[ and to_date(a.time,'yyyy') >= to_date(#{startDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 2 and endDate != null and endDate !='' ">
+		              <![CDATA[ and to_date(a.time,'yyyy') <= to_date(#{endDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 3 and startDate != null and startDate !='' ">
+		              <![CDATA[ and to_date(substr(a.time,0,4),'yyyy') >= to_date(#{startDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 3 and endDate != null and endDate !='' ">
+		             <![CDATA[  and to_date(substr(a.time,0,4),'yyyy') <= to_date(#{endDate},'yyyy')]]>
+		         </if>
+	          </where>
+	          group by a.time
+           
+              
+                 <if test="dateType == 1 ">
+		              order by total desc,to_date(a.time,'yyyy-MM') asc
+		         </if>
+		         <if test="dateType == 2  ">
+		              order by total desc,to_date(a.time,'yyyy') asc
+		         </if>
+		         <if test="dateType == 3 ">
+		              order by total desc, to_number(substr(a.time,0,4)) + to_number(substr(a.time,6,7)) asc
+		         </if>
+              
+              
+              
+              
+    </select>
+    <select id="getYearMax" resultType="map" parameterType="map">
+             <if test="dateType == 1 ">
+                 select b.time, nvl(decode(c.total,0,0,(b.total - c.total)*100/c.total), 0) rate
+                 from 
+                 (   ${unionSql}
+                   select a.time,abs(sum(a.money)) total
+                   from (select month time,charge_money money from ida_chargebill_detail  where isappeal in (-1,0)) a
+                   group by a.time
+                 ) b,
+                 ( ${unionSql} select a.time,abs(sum(a.money)) total from (select month time,charge_money money from ida_chargebill_detail  where isappeal in (-1,0)) a  group by a.time) c
+	         </if>
+	         <if test="dateType == 2 ">
+	             select b.time, nvl(decode(c.total,0,0,(b.total - c.total)*100/c.total),0) rate
+                 from 
+	             (
+                    ${unionSql} select a.time,abs(sum(a.money)) total
+                   from (select to_char(to_date(substr(month,0,4),'yyyy'),'yyyy') time,charge_money money from ida_chargebill_detail  where isappeal in (-1,0)) a  group by a.time
+                 ) b,
+                 ( ${unionSql} select a.time,abs(sum(a.money)) total from (select to_char(to_date(substr(month,0,4),'yyyy'),'yyyy') time,charge_money money from ida_chargebill_detail where isappeal in (-1,0)) a  group by a.time) c
+	         </if>
+	         <if test="dateType == 3 ">
+	             select b.time, nvl(decode(c.total,0,0,(b.total - c.total)*100/c.total), 0) rate
+                 from 
+	             (
+                    ${unionSql} select a.time,abs(sum(a.money)) total
+                   from (select to_char(to_date(month,'yyyy-MM'),'yyyy-Q') time,charge_money money from ida_chargebill_detail where isappeal in (-1,0)) a  group by a.time
+                 ) b,
+                 ( ${unionSql} select a.time,abs(sum(a.money)) total from (select to_char(to_date(month,'yyyy-MM'),'yyyy-Q') time,charge_money money from ida_chargebill_detail where isappeal in (-1,0)) a  group by a.time) c
+	         </if>
+	         <where>
+	             <if test="dateType == 1 and startDate != null and startDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy-MM') >= to_date(#{startDate},'yyyy-MM')]]>
+		         </if>
+		         <if test="dateType == 1 and endDate != null and endDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy-MM') <= to_date(#{endDate},'yyyy-MM')]]>
+		         </if>
+		         <if test="dateType == 2 and startDate != null and startDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy') >= to_date(#{startDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 2 and endDate != null and endDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy') <= to_date(#{endDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 3 and startDate != null and startDate !='' ">
+		              <![CDATA[ and to_date(substr(b.time,0,4),'yyyy') >= to_date(#{startDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 3 and endDate != null and endDate !='' ">
+		              <![CDATA[  and to_date(substr(b.time,0,4),'yyyy') <= to_date(#{endDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 1 ">
+		             and to_date(c.time,'yyyy-MM') = add_months(to_date(b.time,'yyyy-MM'),-12) 
+		         </if>
+		         <if test="dateType == 2 ">
+		             and to_number(c.time) = to_number(b.time) - 1 
+		         </if>
+		         <if test="dateType == 3 ">
+		             and c.time = to_char(to_number(substr(b.time,0,4)) - 1) || substr(b.time,5,6)
+		         </if>
+	          </where>
+	          
+	          
+                 <if test="dateType == 1 ">
+		              order by abs(rate) desc,to_date(b.time,'yyyy-MM') asc
+		         </if>
+		         <if test="dateType == 2  ">
+		              order by abs(rate) desc,to_date(b.time,'yyyy') asc
+		         </if>
+		         <if test="dateType == 3 ">
+		              order by abs(rate) desc, to_number(substr(b.time,0,4)) + to_number(substr(b.time,6,7)) asc
+		         </if>
+    </select>
+    <select id="getDepartmentMoney" resultType="map" parameterType="map">
+             <if test="dateType == 1 ">
+                 select b.department,sum(b.total) money from
+                 ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select b.main_department department,a.month time,a.charge_money money from ida_chargebill_detail a,ida_department_config b
+                  where a.deductedept = b.name and a.isappeal in (-1,0)) a group by a.department,a.time) b
+	         </if>
+	         <if test="dateType == 2 ">
+	             select b.department,sum(b.total) money from 
+                 ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select b.main_department department,to_char(to_date(substr(a.month,0,4),'yyyy'),'yyyy') time,a.charge_money money from ida_chargebill_detail a,ida_department_config b
+                  where a.deductedept = b.name and a.isappeal in (-1,0)) a group by a.department,a.time) b
+	         </if>
+	         <if test="dateType == 3 ">
+	              select b.department,sum(b.total) money from 
+                 ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select b.main_department department,to_char(to_date(a.month,'yyyy-MM'),'yyyy-Q') time,a.charge_money money from ida_chargebill_detail a,ida_department_config b
+                  where a.deductedept = b.name and a.isappeal in (-1,0)) a group by a.department,a.time) b
+	         </if>
+	         <where>
+	             <if test="dateType == 1 and startDate != null and startDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy-MM') >= to_date(#{startDate},'yyyy-MM')]]>
+		         </if>
+		         <if test="dateType == 1 and endDate != null and endDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy-MM') <= to_date(#{endDate},'yyyy-MM')]]>
+		         </if>
+		         <if test="dateType == 2 and startDate != null and startDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy') >= to_date(#{startDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 2 and endDate != null and endDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy') <= to_date(#{endDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 3 and startDate != null and startDate !='' ">
+		              <![CDATA[ and to_date(substr(b.time,0,4),'yyyy') >= to_date(#{startDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 3 and endDate != null and endDate !='' ">
+		              <![CDATA[ and to_date(substr(b.time,0,4),'yyyy') <= to_date(#{endDate},'yyyy')]]>
+		         </if>
+	          </where>
+	          group by b.department
+              order by money desc
+    </select>
+    <select id="getData" resultType="map" parameterType="map">
+             <if test="dateType == 1 ">
+                 select b.department,b.time,sum(b.total) money,c.total monthmoney,d.total yearmoney from
+                 ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select b.main_department department,a.month time,a.charge_money money from ida_chargebill_detail a,ida_department_config b
+                  where a.deductedept = b.name and a.isappeal in (-1,0)) a group by a.department,a.time) b
+                  left join
+                  ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select b.main_department department,a.month time,a.charge_money money from ida_chargebill_detail a,ida_department_config b
+                  where a.deductedept = b.name and a.isappeal in (-1,0)) a group by a.department,a.time) c
+                  on c.time = to_char(add_months(to_date(b.time,'yyyy-MM'),-1),'yyyy-MM') and c.department = b.department
+                  left join
+                   ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select b.main_department department,a.month time,a.charge_money money from ida_chargebill_detail a,ida_department_config b
+                  where a.deductedept = b.name and a.isappeal in (-1,0)) a group by a.department,a.time) d
+                  on d.time = to_char(add_months(to_date(b.time,'yyyy-MM'),-12),'yyyy-MM') and d.department = b.department
+	         </if>
+	         <if test="dateType == 2 ">
+	             select b.department,b.time,sum(b.total) money,c.total monthmoney,d.total yearmoney from 
+                 ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select b.main_department department,to_char(to_date(substr(a.month,0,4),'yyyy'),'yyyy') time,a.charge_money money from ida_chargebill_detail a,ida_department_config b
+                  where a.deductedept = b.name and a.isappeal in (-1,0)) a group by a.department,a.time) b
+                  left join
+                  ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select b.main_department department,to_char(to_date(substr(a.month,0,4),'yyyy'),'yyyy') time,a.charge_money money from ida_chargebill_detail a,ida_department_config b
+                  where a.deductedept = b.name and a.isappeal in (-1,0)) a group by a.department,a.time) c
+                  on c.time = to_char(to_number(b.time) - 1) and c.department = b.department
+                  left join
+                  ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select b.main_department department,to_char(to_date(substr(a.month,0,4),'yyyy'),'yyyy') time,a.charge_money money from ida_chargebill_detail a,ida_department_config b
+                  where a.deductedept = b.name and a.isappeal in (-1,0)) a group by a.department,a.time) d
+                  on d.time = to_char(to_number(b.time) - 1) and d.department = b.department
+	         </if>
+	         <if test="dateType == 3 ">
+	              select b.department,b.time,sum(b.total) money,c.total monthmoney,d.total yearmoney from 
+                 ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select b.main_department department,to_char(to_date(a.month,'yyyy-MM'),'yyyy-Q') time,a.charge_money money from ida_chargebill_detail a,ida_department_config b
+                  where a.deductedept = b.name and a.isappeal in (-1,0)) a group by a.department,a.time) b
+                  left join
+                     ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select b.main_department department,to_char(to_date(a.month,'yyyy-MM'),'yyyy-Q') time,a.charge_money money from ida_chargebill_detail a,ida_department_config b
+                  where a.deductedept = b.name and a.isappeal in (-1,0)) a group by a.department,a.time) c
+                  on (case when substr(b.time,6,7) = '1' then to_char(to_number(substr(b.time,0,4)) - 1) || '-4' else  
+		              substr(b.time,0,5) || to_char(to_number(substr(b.time,6,7)) - 1) end) = c.time and c.department = b.department
+                  left join
+                     ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select b.main_department department,to_char(to_date(a.month,'yyyy-MM'),'yyyy-Q') time,a.charge_money money from ida_chargebill_detail a,ida_department_config b
+                  where a.deductedept = b.name and a.isappeal in (-1,0)) a group by a.department,a.time) d
+                  on d.time = to_char(to_number(substr(b.time,0,4)) - 1) || substr(b.time,5,6) and d.department = b.department
+	         </if>
+	         <where>
+	             <if test="dateType == 1 and startDate != null and startDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy-MM') >= to_date(#{startDate},'yyyy-MM')]]>
+		         </if>
+		         <if test="dateType == 1 and endDate != null and endDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy-MM') <= to_date(#{endDate},'yyyy-MM')]]>
+		         </if>
+		         <if test="dateType == 2 and startDate != null and startDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy') >= to_date(#{startDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 2 and endDate != null and endDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy') <= to_date(#{endDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 3 and startDate != null and startDate !='' ">
+		              <![CDATA[ and to_date(substr(b.time,0,4),'yyyy') >= to_date(#{startDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 3 and endDate != null and endDate !='' ">
+		              <![CDATA[ and to_date(substr(b.time,0,4),'yyyy') <= to_date(#{endDate},'yyyy')]]>
+		         </if>
+	          </where>
+	          group by b.department,b.time,c.total,d.total
+              order by money desc
+    </select>
+    <select id="getAllDepartData" resultType="map" parameterType="map">
+              <if test="dateType == 1 ">
+                 select '全院' department,b.time,sum(b.total) money,sum(c.total) monthmoney,sum(d.total) yearmoney from
+                 ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select '全院' department,a.month time,a.charge_money money from ida_chargebill_detail a
+                  where a.isappeal in (-1,0)) a group by a.time,a.department) b
+                  left join
+                  ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select '全院' department,a.month time,a.charge_money money from ida_chargebill_detail a
+                  where a.isappeal in (-1,0)) a group by a.time,a.department) c
+                  on c.time = to_char(add_months(to_date(b.time,'yyyy-MM'),-1),'yyyy-MM') and c.department = b.department
+                  left join
+                   ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select '全院' department,a.month time,a.charge_money money from ida_chargebill_detail a
+                  where a.isappeal in (-1,0)) a group by a.time,a.department) d
+                  on d.time = to_char(add_months(to_date(b.time,'yyyy-MM'),-12),'yyyy-MM') and d.department = b.department
+	         </if>
+	         <if test="dateType == 2 ">
+	             select '全院' department,b.time,sum(b.total) money,sum(c.total) monthmoney,sum(d.total) yearmoney from 
+                 ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select '全院' department,to_char(to_date(substr(a.month,0,4),'yyyy'),'yyyy') time,a.charge_money money from ida_chargebill_detail a
+                  where a.isappeal in (-1,0)) a group by a.time,a.department) b
+                  left join
+                  ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select '全院' department,to_char(to_date(substr(a.month,0,4),'yyyy'),'yyyy') time,a.charge_money money from ida_chargebill_detail a
+                  where a.isappeal in (-1,0)) a group by a.time,a.department) c
+                  on c.time = to_char(to_number(b.time) - 1) and c.department = b.department
+                  left join
+                  ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select '全院' department,to_char(to_date(substr(a.month,0,4),'yyyy'),'yyyy') time,a.charge_money money from ida_chargebill_detail a
+                  where a.isappeal in (-1,0)) a group by a.time,a.department) d
+                  on d.time = to_char(to_number(b.time) - 1) and d.department = b.department
+	         </if>
+	         <if test="dateType == 3 ">
+	              select '全院' department,b.time,sum(b.total) money,sum(c.total) monthmoney,sum(d.total) yearmoney from 
+                 ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select '全院' department,to_char(to_date(a.month,'yyyy-MM'),'yyyy-Q') time,a.charge_money money from ida_chargebill_detail a
+                  where a.isappeal in (-1,0)) a group by a.time,a.department) b
+                  left join
+                     ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select '全院' department,to_char(to_date(a.month,'yyyy-MM'),'yyyy-Q') time,a.charge_money money from ida_chargebill_detail a
+                  where a.isappeal in (-1,0)) a group by a.time,a.department) c
+                  on (case when substr(b.time,6,7) = '1' then to_char(to_number(substr(b.time,0,4)) - 1) || '-4' else  
+		              substr(b.time,0,5) || to_char(to_number(substr(b.time,6,7)) - 1) end) = c.time and c.department = b.department
+                  left join
+                     ( ${unionSql} select a.time,abs(sum(a.money)) total,a.department department from
+                 (select '全院' department,to_char(to_date(a.month,'yyyy-MM'),'yyyy-Q') time,a.charge_money money from ida_chargebill_detail a
+                  where a.isappeal in (-1,0)) a group by a.time,a.department) d
+                  on d.time = to_char(to_number(substr(b.time,0,4)) - 1) || substr(b.time,5,6) and d.department = b.department
+	         </if>
+	         <where>
+	             <if test="dateType == 1 and startDate != null and startDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy-MM') >= to_date(#{startDate},'yyyy-MM')]]>
+		         </if>
+		         <if test="dateType == 1 and endDate != null and endDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy-MM') <= to_date(#{endDate},'yyyy-MM')]]>
+		         </if>
+		         <if test="dateType == 2 and startDate != null and startDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy') >= to_date(#{startDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 2 and endDate != null and endDate !='' ">
+		              <![CDATA[ and to_date(b.time,'yyyy') <= to_date(#{endDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 3 and startDate != null and startDate !='' ">
+		              <![CDATA[ and to_date(substr(b.time,0,4),'yyyy') >= to_date(#{startDate},'yyyy')]]>
+		         </if>
+		         <if test="dateType == 3 and endDate != null and endDate !='' ">
+		              <![CDATA[ and to_date(substr(b.time,0,4),'yyyy') <= to_date(#{endDate},'yyyy')]]>
+		         </if>
+	          </where>
+	          group by b.time
+              order by money desc
+    </select>
+</mapper>
